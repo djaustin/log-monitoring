@@ -1,0 +1,45 @@
+version: '3.1'
+services:
+  logstash:
+    image: docker.elastic.co/logstash/logstash:7.10.2
+    volumes:
+      - patterns:/etc/logstash/patterns
+      - pipelines:/usr/share/logstash/pipeline
+    ports:
+      - 5000:5000/udp
+    networks:
+      - elastic
+
+  elastic:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.10.2
+    environment:
+      - xpack.security.enabled=false
+      - discovery.type=single-node
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - elastic_data:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+    networks:
+      - elastic
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.10.2
+    ports:
+      - 5601:5601
+    environment:
+      ELASTICSEARCH_URL: http://elastic:9200
+      ELASTICSEARCH_HOSTS: http://elastic:9200
+    networks:
+      - elastic
+
+volumes:
+  elastic_data:
+  pipelines:
+  patterns:
+
+networks:
+  elastic:
